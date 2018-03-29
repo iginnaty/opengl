@@ -1,0 +1,135 @@
+# depslib dependency file v1.0
+1522183974 source:c:\users\iginnaty\documents\freeglut\main.cpp
+	"Graphics/INCLUDES.h"
+	"Application/application.h"
+
+1521658741 c:\users\iginnaty\documents\freeglut\graphics.h
+	<GL/freeglut.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdio.h>
+	<iostream>
+
+1426371328 c:\library\freeglut-3.0.0\include\gl\freeglut.h
+	"freeglut_std.h"
+	"freeglut_ext.h"
+
+1426371328 c:\library\freeglut-3.0.0\include\gl\freeglut_std.h
+	<windows.h>
+	<EGL/egl.h>
+	<GLES/gl.h>
+	<GLES2/gl2.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdlib.h>
+
+1426371328 c:\library\freeglut-3.0.0\include\gl\freeglut_ext.h
+	<stdarg.h>
+
+1522090544 c:\users\iginnaty\documents\freeglut\g_util.h
+
+1522180823 source:c:\users\iginnaty\documents\freeglut\g_util.cpp
+	<IL/il.h>
+	<IL/ilu.h>
+	"graphics.h"
+	"g_util.h"
+	"texture.h"
+
+1522173707 source:c:\users\iginnaty\documents\freeglut\texture.cpp
+	"texture.h"
+
+1522169374 c:\users\iginnaty\documents\freeglut\texture.h
+	<string>
+	<IL/il.h>
+	"graphics.h"
+
+1483218828 c:\library\il\il.h
+	<stdio.h>
+	<limits.h>
+	<wchar.h>
+
+1483218828 c:\library\devil\il\il.h
+	<stdio.h>
+	<limits.h>
+	<wchar.h>
+
+1483218834 c:\library\devil\il\ilu.h
+	<IL/il.h>
+
+1522181049 source:c:\users\iginnaty\documents\freeglut\util\library\library.cpp
+
+1522272849 source:c:\users\iginnaty\documents\freeglut\graphics\texture\texture.cpp
+	"texture.h"
+
+1522182487 c:\users\iginnaty\documents\freeglut\graphics\texture\texture.h
+	<string>
+	<IL/il.h>
+	"../INCLUDES.h"
+
+1522271414 c:\users\iginnaty\documents\freeglut\graphics\includes.h
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdio.h>
+	<iostream>
+
+1522272840 source:c:\users\iginnaty\documents\freeglut\graphics\texture\texture_library.cpp
+	"texture_library.h"
+
+1522183572 c:\users\iginnaty\documents\freeglut\graphics\texture\texture_library.h
+	<vector>
+	"texture.h"
+
+1522254563 c:\users\iginnaty\documents\freeglut\application\application.h
+	"../Graphics/Texture/texture_library.h"
+
+1522269338 source:c:\users\iginnaty\documents\freeglut\application\application.cpp
+	<IL/il.h>
+	<IL/ilu.h>
+	"../Graphics/INCLUDES.h"
+	"../Graphics/Texture/texture.h"
+	"application.h"
+
+1501505181 c:\library\glew-2.1.0\include\gl\glew.h
+	<stddef.h>
+	<inttypes.h>
+	<stdint.h>
+	<inttypes.h>
+	<Availability.h>
+	<OpenGL/glu.h>
+	<GL/glu.h>
+
+1501503939 c:\library\glew-2.1.0\src\gl\glew.c
+	<GL/glew.h>
+	<GL/osmesa.h>
+	<GL/eglew.h>
+	<GL/wglew.h>
+	<GL/glxew.h>
+	<stddef.h>
+	<dlfcn.h>
+	<stdio.h>
+	<stdlib.h>
+	<stdlib.h>
+	<string.h>
+	<AvailabilityMacros.h>
+	<dlfcn.h>
+	<mach-o/dyld.h>
+
+1501505181 c:\library\glew-2.1.0\include\gl\eglew.h
+	<sys/types.h>
+	<KHR/khrplatform.h>
+	<EGL/eglplatform.h>
+	<GL/glew.h>
+
+1501505181 c:\library\glew-2.1.0\include\gl\wglew.h
+	<windows.h>
+
+1501505181 c:\library\glew-2.1.0\include\gl\glxew.h
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<X11/Xmd.h>
+	<GL/glew.h>
+
