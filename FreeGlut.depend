@@ -1,7 +1,11 @@
 # depslib dependency file v1.0
-1522183974 source:c:\users\iginnaty\documents\freeglut\main.cpp
+1522875035 source:c:\users\iginnaty\documents\freeglut\main.cpp
+	<IL/il.h>
+	<IL/ilu.h>
 	"Graphics/INCLUDES.h"
-	"Application/application.h"
+	"Graphics/WINDOW.h"
+	"Graphics/Shapes/cube.h"
+	"Graphics/Texture/spritesheet.h"
 
 1521658741 c:\users\iginnaty\documents\freeglut\graphics.h
 	<GL/freeglut.h>
@@ -60,20 +64,21 @@
 
 1522181049 source:c:\users\iginnaty\documents\freeglut\util\library\library.cpp
 
-1522272849 source:c:\users\iginnaty\documents\freeglut\graphics\texture\texture.cpp
+1522774228 source:c:\users\iginnaty\documents\freeglut\graphics\texture\texture.cpp
+	<IL/il.h>
+	<IL/ilu.h>
 	"texture.h"
 
-1522182487 c:\users\iginnaty\documents\freeglut\graphics\texture\texture.h
+1522863119 c:\users\iginnaty\documents\freeglut\graphics\texture\texture.h
 	<string>
-	<IL/il.h>
 	"../INCLUDES.h"
+	"../../Util/Math/powertwo.hpp"
 
-1522271414 c:\users\iginnaty\documents\freeglut\graphics\includes.h
+1522696373 c:\users\iginnaty\documents\freeglut\graphics\includes.h
 	<GL/glew.h>
 	<GL/freeglut.h>
 	<GL/gl.h>
 	<GL/glu.h>
-	<stdio.h>
 	<iostream>
 
 1522272840 source:c:\users\iginnaty\documents\freeglut\graphics\texture\texture_library.cpp
@@ -132,4 +137,33 @@
 	<X11/Xutil.h>
 	<X11/Xmd.h>
 	<GL/glew.h>
+
+1522771371 c:\users\iginnaty\documents\freeglut\util\math\powertwo.hpp
+
+1522693198 c:\users\iginnaty\documents\freeglut\graphics\window.h
+
+1522866363 source:c:\users\iginnaty\documents\freeglut\graphics\shapes\rect.cpp
+	"rect.h"
+
+1522773119 c:\users\iginnaty\documents\freeglut\graphics\shapes\rect.h
+	"../INCLUDES.h"
+	"../Texture/texture.h"
+	"../vertexdata.hpp"
+
+1522865517 c:\users\iginnaty\documents\freeglut\graphics\vertexdata.hpp
+	"INCLUDES.h"
+
+1522872793 source:c:\users\iginnaty\documents\freeglut\graphics\texture\spritesheet.cpp
+	"spritesheet.h"
+
+1522865772 c:\users\iginnaty\documents\freeglut\graphics\texture\spritesheet.h
+	"texture.h"
+
+1522875175 source:c:\users\iginnaty\documents\freeglut\graphics\shapes\cube.cpp
+	"cube.h"
+
+1522874491 c:\users\iginnaty\documents\freeglut\graphics\shapes\cube.h
+	"../INCLUDES.h"
+	"../Texture/spritesheet.h"
+	"../vertexdata.hpp"
 

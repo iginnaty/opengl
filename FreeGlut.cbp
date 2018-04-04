@@ -48,15 +48,18 @@
 			<Add directory="C:/Library/DevIL/x86/Release" />
 			<Add directory="C:/Library/glew-2.1.0/lib/Release/Win32" />
 		</Linker>
-		<Unit filename="Application/application.cpp" />
-		<Unit filename="Application/application.h" />
 		<Unit filename="Graphics/INCLUDES.h" />
+		<Unit filename="Graphics/Shapes/cube.cpp" />
+		<Unit filename="Graphics/Shapes/cube.h" />
+		<Unit filename="Graphics/Shapes/rect.cpp" />
+		<Unit filename="Graphics/Shapes/rect.h" />
+		<Unit filename="Graphics/Texture/spritesheet.cpp" />
+		<Unit filename="Graphics/Texture/spritesheet.h" />
 		<Unit filename="Graphics/Texture/texture.cpp" />
 		<Unit filename="Graphics/Texture/texture.h" />
-		<Unit filename="Graphics/Texture/texture_library.cpp" />
-		<Unit filename="Graphics/Texture/texture_library.h" />
-		<Unit filename="Util/Library/library.cpp" />
-		<Unit filename="Util/Library/library.h" />
+		<Unit filename="Graphics/WINDOW.h" />
+		<Unit filename="Graphics/vertexdata.hpp" />
+		<Unit filename="Util/Math/powertwo.hpp" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
