@@ -48,6 +48,13 @@
 			<Add directory="C:/Library/DevIL/x86/Release" />
 			<Add directory="C:/Library/glew-2.1.0/lib/Release/Win32" />
 		</Linker>
+		<Unit filename="Data/WTD/cube.wtd" />
+		<Unit filename="File/Format/wad.cpp" />
+		<Unit filename="File/Format/wad.h" />
+		<Unit filename="File/Format/wtd.cpp" />
+		<Unit filename="File/Format/wtd.h" />
+		<Unit filename="File/Parser/wtd.cpp" />
+		<Unit filename="File/Parser/wtd.h" />
 		<Unit filename="Graphics/INCLUDES.h" />
 		<Unit filename="Graphics/Shapes/cube.cpp" />
 		<Unit filename="Graphics/Shapes/cube.h" />
@@ -59,7 +66,10 @@
 		<Unit filename="Graphics/Texture/texture.h" />
 		<Unit filename="Graphics/WINDOW.h" />
 		<Unit filename="Graphics/vertexdata.hpp" />
+		<Unit filename="Model/model.cpp" />
+		<Unit filename="Model/model.h" />
 		<Unit filename="Util/Math/powertwo.hpp" />
+		<Unit filename="gstart.hpp" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

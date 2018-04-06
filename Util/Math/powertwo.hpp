@@ -3,10 +3,8 @@
 namespace Util {
 namespace Math {
 
-    static int nextPowerOfTwo(int number, bool down = true) {
-        if (down) {
-            --number;
-        }
+    static int nextPowerOfTwo(int number) {
+        --number;
 
         number |= number >> 1;
         number |= number >> 2;

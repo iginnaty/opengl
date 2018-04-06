@@ -1,0 +1,68 @@
+#A basic cube
+
+define {
+    point UpFrLf {
+        0, 0, 0
+    };
+    point UpFrRt {
+        1, 0, 0
+    };
+    point DnFrRt {
+        1, 1, 0
+    };
+    point DnFrLf {
+        0, 1, 0
+    };
+    point UpBkLf {
+        0, 0, 1
+    };
+    point UpBkRt {
+        1, 0, 1
+    };
+    point DnBkRt {
+        1, 1, 1
+    };
+    point DnBkLf {
+        0, 1, 1
+    };
+
+    face Front {
+        ~UpFrLf, ~UpFrRt, ~DnFrRt, ~DnFrLf
+    };
+    face Back {
+        ~UpBkLf, ~UpBkRt, ~DnBkRt, ~DnBkLf
+    };
+    face Top {
+        ~UpBkLf, ~UpBkRt, ~UpFrRt, ~UpFrLf
+    };
+    face Bottom {
+        ~DnBkRt, ~DnBkLf, ~DnFrLf, ~DnFrRt
+    };
+    face Left {
+        ~UpBkLf, ~UpFrLf, ~DnFrLf, ~DnBkLf
+    };
+    face Right {
+        ~UpFrRt, ~UpBkRt, ~DnBkRt, ~DnFrRt
+    };
+
+    texcoord TexTop {
+        0, 0
+    };
+    texcoord TexSide {
+        0, 1
+    };
+    texcoord TexBottom {
+        1, 0
+    };
+};
+
+set spritesheet = textures/cube.png;
+set spritesize = 16;
+set model = [
+    { ~Front, ~TexSide },
+    { ~Back, ~TexSide },
+    { ~Top, ~TexTop },
+    { ~Bottom, ~TexBottom },
+    { ~Left, ~TexSide },
+    { ~Right, ~TexSide }
+];
