@@ -1,11 +1,11 @@
 #include "gstart.hpp"
 
-#include "File/Parser/wtd.h"
+#include "File/Format/wtd.h"
 
 int main(int argc, char* argv[]) {
     // return runGraphics(argc, argv);
 
-    File::Parser::WTD wtd_reader;
+    File::Format::WTD wtd;
 
-    wtd_reader.readFromFile("Data/WTD/cube.wtd");
+    wtd.readFromFile("Data/WTD/cube.wtd");
 }

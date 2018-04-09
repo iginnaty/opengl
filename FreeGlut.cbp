@@ -53,7 +53,6 @@
 		<Unit filename="File/Format/wad.h" />
 		<Unit filename="File/Format/wtd.cpp" />
 		<Unit filename="File/Format/wtd.h" />
-		<Unit filename="File/Parser/wtd.cpp" />
 		<Unit filename="File/Parser/wtd.h" />
 		<Unit filename="Graphics/INCLUDES.h" />
 		<Unit filename="Graphics/Shapes/cube.cpp" />
