@@ -26,6 +26,10 @@ std::vector<WTDTexCoord> * WTD::getTexCoords() {
     return &this->texture_coords;
 }
 
+std::vector<WTDModelData> * WTD::getData() {
+    return &this->data;
+}
+
 bool WTD::getPoint(WTDPoint &point, bool parse_name) {
     std::string token;
     bool success = true;
@@ -90,21 +94,27 @@ bool WTD::getFace(WTDFace &face, bool parse_name) {
 
     this->input >> token;
 
-    while (!this->input.eof() && "};" != token && success) {
+    while (!this->input.eof() && '}' != token[0] && success) {
         point = nullptr;
 
         if ('{' == token[0]) {
             point = new WTDPoint();
 
             point->name = "ANON" + (unsigned)(this->points.size());
-            this->getPoint(*point, false);
+            success = this->getPoint(*point, false);
 
-            this->points.push_back(*point);
+            if (success) {
+                this->points.push_back(*point);
+                delete point;
 
-            this->input >> token;
-            if ('}' != token[0]) {
-                success = false;
-                this->errors.push_back("Expected '}' when reading ANONYMOUS point");
+                this->input >> token;
+                if ('}' != token[0]) {
+                    success = false;
+                    this->errors.push_back("Expected '}' when reading ANONYMOUS point");
+                }
+            }
+            else {
+                break;
             }
         }
         else if ('~' == token[0]) {
@@ -162,7 +172,6 @@ bool WTD::parseFaceBlock() {
 
 bool WTD::getTexCoord(WTDTexCoord &texture_coord, bool parse_name) {
     std::string token;
-    bool success = true;
 
     if (parse_name) {
         this->input >> token;
@@ -180,8 +189,8 @@ bool WTD::getTexCoord(WTDTexCoord &texture_coord, bool parse_name) {
     this->input >> token;
 
     if (this->input.eof()) {
-        success = false;
         this->errors.push_back("File terminated early");
+        return false;
     }
     else {
         this->input >> texture_coord.data.y;
@@ -189,11 +198,11 @@ bool WTD::getTexCoord(WTDTexCoord &texture_coord, bool parse_name) {
     }
 
     if (this->input.eof()) {
-        success = false;
         this->errors.push_back("File terminated early");
+        return false;
     }
 
-    return success;
+    return true;
 }
 
 bool WTD::parseTexCoordBlock() {
@@ -238,11 +247,113 @@ bool WTD::parseDefineBlock() {
     }
 
     return success;
-};
+}
+
+bool WTD::parseModel() {
+    std::string token;
+    bool success = true;
+    WTDFace *face = nullptr;
+    WTDTexCoord *tex_coord = nullptr;
+    WTDModelData *model;
+
+    this->input >> token;
+
+    if ("[" != token) {
+        this->errors.push_back("Expected array when parsing model");
+        success = false;
+    }
+
+    this->input >> token;
+
+    while (!this->input.eof() && success) {
+        this->input >> token;
+
+        if ('~' == token[0]) {
+            token = token.substr(1, token.size() - 2);
+
+            for (auto &face_p : this->faces) {
+                if (face_p.name == token) {
+                    face = &face_p;
+                    break;
+                }
+            }
+
+            if (nullptr == face) {
+                success = false;
+                this->errors.push_back("Undefined reference to defined face \"" + token + "\"");
+            }
+        }
+        else if ("{" == token) {
+            face = new WTDFace();
+            success = this->getFace(*face, false);
+
+            if (success) {
+                face->name = "ANON" + (unsigned)(this->faces.size());
+                this->faces.push_back(*face);
+                delete face;
+            }
+            else {
+                break;
+            }
+        }
+        else {
+            success = false;
+            break;
+        }
+
+        this->input >> token;
+
+        if ('~' == token[0]) {
+            token = token.substr(1, token.size() - 1);
+
+            for (auto &tex_p : this->texture_coords) {
+                if (tex_p.name == token) {
+                    tex_coord = &tex_p;
+                    break;
+                }
+            }
+
+            if (nullptr == tex_coord) {
+                success = false;
+                this->errors.push_back("Undefined reference to defined texture coord \"" + token + "\"");
+            }
+        }
+        else if ("{" == token) {
+            tex_coord = new WTDTexCoord();
+            success = this->getTexCoord(*tex_coord, false);
+
+            if (success) {
+                tex_coord->name = "ANON" + (unsigned)(this->texture_coords.size());
+                this->texture_coords.push_back(*tex_coord);
+            }
+            else {
+                break;
+            }
+        }
+
+        if (nullptr != face && nullptr != tex_coord) {
+            model = new WTDModelData();
+            model->face = face;
+            model->texture = tex_coord;
+
+            this->data.push_back(*model);
+            delete model;
+        }
+
+        this->input >> token >> token;
+    }
+
+    if (this->input.eof()) {
+        this->errors.push_back("File terminated early");
+        return false;
+    }
+
+    return success;
+}
 
 void WTD::readFromFile(std::string path) {
     std::string token;
-    bool subcase_success = true;
+    bool success = true;
 
     this->input.open(path);
 
@@ -250,7 +361,7 @@ void WTD::readFromFile(std::string path) {
         return;
     }
 
-    while (!this->input.eof()) {
+    while (!this->input.eof() && success) {
         this->input >> token;
 
         // comments
@@ -270,8 +381,8 @@ void WTD::readFromFile(std::string path) {
 
         if ("define" == token) {
             this->input >> token; // remove following brace
-            subcase_success = this->parseDefineBlock();
-            if (!subcase_success) {
+            success = this->parseDefineBlock();
+            if (!success) {
                 break;
             }
         }
@@ -291,8 +402,15 @@ void WTD::readFromFile(std::string path) {
                 this->input >> token;
             }
             else if ("model" == token) {
+                this->input >> token;
+                success = this->parseModel();
+            }
+            else if ("modelname" == token) {
                 this->input >> token >> token;
-                std::cout << "Model...\n";
+                if (';' == token[token.size() - 1]) {
+                    this->name = token.erase(token.size() - 1, 1);
+                }
+                std::cout << "Model name: " << this->name;
             }
         }
         else {
@@ -300,8 +418,12 @@ void WTD::readFromFile(std::string path) {
         }
     }
 
+    if (0 == this->errors.size()) {
+        this->loaded = true;
+    }
+
     if (!this->input.eof()) {
-        this->errors.push_back("Parser terminated early");
+        this->errors.push_back("Unexpected data at end of file ignored");
     }
 
     for (auto &msg : this->errors) {
@@ -364,6 +486,15 @@ void WTD::print() {
 
     for (auto &texture_coord : this->texture_coords) {
         this->printTexCoord(texture_coord);
+    }
+
+    std::cout << "\n=== MODEL ===\n\n";
+
+    for (auto &model : this->data) {
+        std::cout << "Model entry:\n\tFace:    " <<
+            model.face->name << "\n\tTexture: " <<
+            model.texture->name <<
+        "\n";
     }
 }
 

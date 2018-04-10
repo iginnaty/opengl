@@ -18,17 +18,18 @@ typedef WTDTuple<std::vector<WTDPoint*> > WTDFace;
 typedef WTDTuple<Graphics::Vertex2D>      WTDTexCoord;
 
 struct WTDModelData {
-    Graphics::Vertex *position;
-    Graphics::Vertex2D *texture;
+    WTDFace     *face;
+    WTDTexCoord *texture;
 };
 
 class WhatTextData {
 private:
     bool loaded;
     std::string name;
-    std::vector<WTDPoint>    points;
-    std::vector<WTDFace>     faces;
-    std::vector<WTDTexCoord> texture_coords;
+    std::vector<WTDPoint>     points;
+    std::vector<WTDFace>      faces;
+    std::vector<WTDTexCoord>  texture_coords;
+    std::vector<WTDModelData> data;
     std::string spritesheet_path;
     unsigned sprite_size;
 
@@ -47,9 +48,10 @@ private:
 public:
     WhatTextData();
     bool isLoaded();
-    std::vector<WTDPoint> *    getPoints();
-    std::vector<WTDFace> *     getFaces();
-    std::vector<WTDTexCoord> * getTexCoords();
+    std::vector<WTDPoint>     * getPoints();
+    std::vector<WTDFace>      * getFaces();
+    std::vector<WTDTexCoord>  * getTexCoords();
+    std::vector<WTDModelData> * getData();
 
     void readFromFile(std::string path);
     void print();
