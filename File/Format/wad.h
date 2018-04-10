@@ -5,14 +5,16 @@
 #include <vector>
 #include <string>
 
+#define DEBUG_WAD 1
+
 namespace File {
 namespace Format {
 
 struct WADVertexData {
+    unsigned position_index, texture_index;
+
     Graphics::Vertex *position;
     Graphics::VertexI2D *texture;
-
-    unsigned position_index, texture_index;
 };
 
 struct WAD_VAO {
@@ -22,9 +24,11 @@ struct WAD_VAO {
 
 class WheresAlltheData {
 private:
-    std::vector<Graphics::Vertex>   vertices;
-    std::vector<Graphics::Vertex2D> texture_coords;
-    std::vector<std::vector<WADVertexData> > data;
+    std::string name;
+
+    std::vector<Graphics::Vertex>    vertices;
+    std::vector<Graphics::VertexI2D> texture_coords;
+    std::vector<std::vector<WADVertexData> > faces;
 
     std::string spritesheet_path;
     unsigned sprite_size;
@@ -32,9 +36,12 @@ private:
 public:
     bool writeToFile(std::string path);
     bool readFromFile(std::string path);
-    bool fromWTD(WTD &input);
-    WAD_VAO getVAO();
-    std::string name;
+    void clear();
+
+    #if DEBUG_WAD
+    void loadDebugData();
+    void print();
+    #endif
 };
 
 typedef WheresAlltheData WAD;

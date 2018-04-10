@@ -48,12 +48,12 @@
 			<Add directory="C:/Library/DevIL/x86/Release" />
 			<Add directory="C:/Library/glew-2.1.0/lib/Release/Win32" />
 		</Linker>
+		<Unit filename="Data/WAD/test.wad" />
 		<Unit filename="Data/WTD/cube.wtd" />
 		<Unit filename="File/Format/wad.cpp" />
 		<Unit filename="File/Format/wad.h" />
 		<Unit filename="File/Format/wtd.cpp" />
 		<Unit filename="File/Format/wtd.h" />
-		<Unit filename="File/Parser/wtd.h" />
 		<Unit filename="Graphics/INCLUDES.h" />
 		<Unit filename="Graphics/Shapes/cube.cpp" />
 		<Unit filename="Graphics/Shapes/cube.h" />

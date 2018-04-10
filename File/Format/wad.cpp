@@ -5,94 +5,281 @@
 namespace File {
 namespace Format {
 
+std::string readHeadedLengthString(std::ifstream &input) {
+    size_t length;
+    char *buffer;
+    std::string output;
+
+    input.read((char *)&length, sizeof(length));
+    buffer = new char[length + 1];
+    input.read(buffer, length);
+    buffer[length] = 0;
+
+    output = std::string(buffer);
+    delete [] buffer;
+
+    return output;
+}
+
+template<typename bintype>
+std::vector<bintype> readHeadedLengthVector(std::ifstream &input, size_t data_length = sizeof(bintype)) {
+    size_t length;
+    unsigned index;
+    bintype *buffer;
+    std::vector<bintype> data_vector;
+
+    input.read((char *)&length, sizeof(length));
+    buffer = new bintype{0};
+
+    for (index = 0; index < length; ++index) {
+        input.read((char *)buffer, data_length);
+        data_vector.push_back(*buffer);
+    }
+
+    delete buffer;
+
+    return data_vector;
+}
+
+bool WAD::readFromFile(std::string path) {
+    std::ifstream input;
+    size_t length, sub_length;
+    unsigned index, sub_index;
+    std::vector<WADVertexData> face;
+    WADVertexData *face_entry;
+
+    input.open(path, std::ios::in | std::ios::binary);
+
+    if (!input) {
+        return false;
+    }
+
+    this->name = readHeadedLengthString(input);
+
+    this->vertices = readHeadedLengthVector<Graphics::Vertex>(input);
+    this->texture_coords = readHeadedLengthVector<Graphics::VertexI2D>(input);
+
+    input.read((char *)&length, sizeof(length));
+
+    for (index = 0; index < length; ++index) {
+        face = readHeadedLengthVector<WADVertexData>(input, sizeof(WADVertexData().position_index) + sizeof(WADVertexData().texture_index));
+        sub_length = face.size();
+
+        for (sub_index = 0; sub_index < sub_length; ++sub_index) {
+            face_entry = &face[sub_index];
+
+            face_entry->position = &this->vertices[face_entry->position_index];
+            face_entry->texture = &this->texture_coords[face_entry->texture_index];
+        }
+
+        this->faces.push_back(face);
+    }
+
+    this->spritesheet_path = readHeadedLengthString(input);
+    input.read((char *)&this->sprite_size, sizeof(this->sprite_size));
+
+    input.close();
+
+    return true;
+}
+
+void writeHeadedLengthString(std::ofstream &output, std::string data) {
+    size_t length = data.size();
+    output.write((char *)&length, sizeof(length));
+    output.write(data.c_str(), length);
+}
+
+template<typename bintype>
+void writeHeadedLengthVector(std::ofstream &output, std::vector<bintype> &data_vector, size_t data_length = sizeof(bintype)) {
+    size_t length = data_vector.size();
+    unsigned index;
+
+    output.write((char *)&length, sizeof(length));
+    for (index = 0; index < length; ++index) {
+        output.write((char *)&data_vector[index], data_length);
+    }
+}
+
 bool WAD::writeToFile(std::string path) {
     std::ofstream output;
+    unsigned index;
+    size_t length;
 
     output.open(path, std::ios::out | std::ios::binary);
 
-    std::size_t name_size = this->name.size();
+    if (!output) {
+        return false;
+    }
 
-    output.write((char *)&name_size, sizeof(name_size));
-    output.write(this->name.c_str(), name_size);
+    // name (size prepend not null terminated)
+    writeHeadedLengthString(output, this->name);
+
+    // vertex dictionary
+    writeHeadedLengthVector(output, this->vertices);
+
+    // texture coordinate dictionary
+    writeHeadedLengthVector(output, this->texture_coords);
+
+    // model data
+    length = this->faces.size();
+    output.write((char *)&length, sizeof(length));
+    for (index = 0; index < length; ++index) {
+
+        // face
+        writeHeadedLengthVector(output, this->faces[index], sizeof(WADVertexData().position_index) + sizeof(WADVertexData().texture_index));
+    }
+
+    // spritesheet path
+    writeHeadedLengthString(output, this->spritesheet_path);
+
+    // sprite size
+    output.write((char *)&this->sprite_size, sizeof(this->sprite_size));
 
     output.close();
 
     return true;
 }
 
-bool WAD::fromWTD(WTD &input) {
-    std::vector<WTDModelData> *wtd_data = nullptr;
-    std::vector<WADVertexData> active_face;
-    WADVertexData *active_ao_entry;
+void WAD::clear() {
+    this->name = "";
+    this->spritesheet_path = "";
+    this->sprite_size = 0;
 
-    Graphics::Vertex    *active_vertex   = nullptr;
-    Graphics::VertexI2D *active_vertex2d = nullptr;
-    unsigned index;
-
-    if (!input.isLoaded()) {
-        return false;
-    }
-
-    wtd_data = input.getData();
-
-    std::cout << "Start\n";
-
-    // for each piece of the model
-    for (auto &model_piece : *wtd_data) {
-
-        // for every vertex in the piece's face
-        for (auto &vertex : model_piece.face->data) {
-            active_vertex = nullptr;
-            // check if we have the vertex saved
-            index = 0;
-            for (auto &saved_vertex : this->vertices) {
-                if (vertex->data == saved_vertex) {
-                    active_vertex = &vertex->data;
-                    break;
-                }
-                ++index;
-            }
-
-            if (nullptr == active_vertex) {
-                this->vertices.push_back(vertex->data);
-            }
-
-            active_face.push_back(WADVertexData());
-            active_ao_entry = &active_face.back();
-
-            active_ao_entry->position = active_vertex;
-            active_ao_entry->position_index = index;
-        }
-
-        for (auto &tex_coord : model_piece.texture->data) {
-            active_vertex2d = nullptr;
-            index = 0;
-            for (auto &saved_vertex2d : this->texture_coords) {
-                if (tex_coord->data == saved_vertex2d) {
-                    active_vertex2d = &tex_coord->data;
-                    break;
-                }
-                ++index;
-            }
-
-            if (nullptr == active_vertex2d) {
-                this->texture_coords.push_back(tex_coord->data);
-            }
-
-            /*
-                save texture coordinate data to appropriate entry
-            */
-        }
-
-        std::cout << "[ ";
-        for (auto &vertex : active_face) {
-            std::cout << vertex.position_index << ", ";
-        }
-        std::cout << "]\n";
-
-        active_face.clear();
-    }
+    this->vertices.clear();
+    this->texture_coords.clear();
+    this->faces.clear();
 }
+
+#if DEBUG_WAD
+    void WAD::loadDebugData() {
+        Graphics::Vertex    *temp_vertex;
+        Graphics::VertexI2D *temp_vertex2d;
+        WADVertexData *temp_face;
+        std::vector<WADVertexData> temp_faces;
+
+        this->name = "DEBUG WAD";
+        this->spritesheet_path = "debug_path.pth";
+        this->sprite_size = 16;
+
+        temp_vertex = new Graphics::Vertex{0};
+        this->vertices.push_back(*temp_vertex);
+
+        temp_vertex->x = 1;
+        this->vertices.push_back(*temp_vertex);
+
+        temp_vertex->y = 1;
+        this->vertices.push_back(*temp_vertex);
+
+        delete temp_vertex;
+
+        temp_vertex2d = new Graphics::VertexI2D();
+        temp_vertex2d->x = 1;
+        temp_vertex2d->y = 1;
+        this->texture_coords.push_back(*temp_vertex2d);
+
+        temp_vertex2d->x = 2;
+        this->texture_coords.push_back(*temp_vertex2d);
+
+        temp_vertex2d->y = 2;
+        this->texture_coords.push_back(*temp_vertex2d);
+
+        delete temp_vertex2d;
+
+        temp_face = new WADVertexData{0};
+        temp_face->position = &this->vertices[0];
+        temp_face->texture  = &this->texture_coords[0];
+        temp_faces.push_back(*temp_face);
+
+        temp_face->position_index = 1;
+        temp_face->texture_index = 1;
+        temp_face->position = &this->vertices[1];
+        temp_face->texture  = &this->texture_coords[1];
+        temp_faces.push_back(*temp_face);
+
+        temp_face->position_index = 2;
+        temp_face->texture_index = 2;
+        temp_face->position = &this->vertices[2];
+        temp_face->texture  = &this->texture_coords[2];
+        temp_faces.push_back(*temp_face);
+
+        delete temp_face;
+        this->faces.push_back(temp_faces);
+    }
+
+    void WAD::print() {
+        unsigned index, length, sub_index, sub_length;
+        Graphics::Vertex *vertex;
+        Graphics::VertexI2D *tex_coord;
+        std::vector<WADVertexData> *face;
+        WADVertexData *vertex_data;
+
+        std::cout <<
+            "\n=== WAD ===\n\n"
+            "Name: " <<
+                this->name <<
+            "\nSpritesheet: " <<
+                this->spritesheet_path <<
+            "\nSprite size: " <<
+                this->sprite_size <<
+            "\n";
+
+        std::cout << "\n>>> Vertices <<<\n\n";
+        for (index = 0, length = this->vertices.size(); index < length; ++index) {
+            vertex = &this->vertices[index];
+
+            std::cout <<
+                "[" <<
+                    index <<
+                "] "
+                "( " <<
+                    vertex->x << ", " <<
+                    vertex->y << ", " <<
+                    vertex->z <<
+                " )\n";
+        }
+
+        std::cout << "\n>>> Texture Coordinates <<<\n\n";
+        for (index = 0, length = this->texture_coords.size(); index < length; ++index) {
+            tex_coord = &this->texture_coords[index];
+
+            std::cout <<
+                "[" <<
+                    index <<
+                "] "
+                "( " <<
+                    tex_coord->x << ", " <<
+                    tex_coord->y <<
+                " )\n";
+        }
+
+        std::cout << "\n>>> Faces <<<\n\n";
+        for (index = 0, length = this->faces.size(); index < length; ++index) {
+            std::cout <<
+                "~~~ Face [" <<
+                    index <<
+                "] ~~~\n";
+
+            face = &this->faces[index];
+            for (sub_index = 0, sub_length = face->size(); sub_index < sub_length; ++sub_index) {
+                vertex_data = &(*face)[sub_index];
+
+                std::cout <<
+                    "\n--- Vertex [" <<
+                        index << ":" <<
+                        sub_index <<
+                    "] ---\n\n"
+                    "Position Index: " <<
+                        vertex_data->position_index <<
+                    "\n"
+                    "Texture Index:  " <<
+                        vertex_data->texture_index <<
+                    "\n";
+            }
+        }
+
+        std::cout << "\n\n";
+    }
+#endif
 
 }
 }

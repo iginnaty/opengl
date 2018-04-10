@@ -67,6 +67,8 @@ define {
 
 set spritesheet = textures/cube.png;
 set spritesize = 16;
+
+set modelname = CUBE;
 set model = [
     { ~Front, ~TexSide },
     { ~Back, ~TexSide },
@@ -75,4 +77,3 @@ set model = [
     { ~Left, ~TexSide },
     { ~Right, ~TexSide }
 ];
-set modelname = CUBE;
