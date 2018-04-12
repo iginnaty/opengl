@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1523399543 source:c:\users\iginnaty\documents\freeglut\main.cpp
+1523554086 source:c:\users\iginnaty\documents\freeglut\main.cpp
 	"gstart.hpp"
 	"File/Format/wtd.h"
 	"File/Format/wad.h"
@@ -165,12 +165,12 @@
 	"../Texture/spritesheet.h"
 	"../vertexdata.hpp"
 
-1523398219 source:c:\users\iginnaty\documents\freeglut\file\format\wad.cpp
+1523399680 source:c:\users\iginnaty\documents\freeglut\file\format\wad.cpp
 	"wad.h"
 	<fstream>
 	<iostream>
 
-1523384121 source:c:\users\iginnaty\documents\freeglut\file\format\wtd.cpp
+1523560915 source:c:\users\iginnaty\documents\freeglut\file\format\wtd.cpp
 	"wtd.h"
 	<iostream>
 
@@ -184,7 +184,7 @@
 	"../Format/wtd.h"
 	"../Format/wad.h"
 
-1523380848 c:\users\iginnaty\documents\freeglut\file\format\wtd.h
+1523561014 c:\users\iginnaty\documents\freeglut\file\format\wtd.h
 	<string>
 	<vector>
 	<fstream>

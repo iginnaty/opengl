@@ -8,6 +8,7 @@
 int main(int argc, char* argv[]) {
     // return runGraphics(argc, argv);
 
+    /*
     File::Format::WAD wad;
 
     wad.loadDebugData();
@@ -23,4 +24,9 @@ int main(int argc, char* argv[]) {
     wad.readFromFile("Data/WAD/test.wad");
 
     wad.print();
+    */
+
+    File::Format::WTD wtd;
+
+    wtd.readFromFile("Data/WTD/cube.wtd");
 }

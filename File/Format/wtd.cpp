@@ -1,500 +1,447 @@
 #include "wtd.h"
 #include <iostream>
 
-#define FILE_PARSER_WTD_DEBUG 1
-
 namespace File {
 namespace Format {
 
-WTD::WhatTextData() {
-    this->loaded = false;
-};
-
-bool WTD::isLoaded() {
-    return this->loaded;
-}
-
-std::vector<WTDPoint> * WTD::getPoints() {
-    return &this->points;
-}
-
-std::vector<WTDFace> * WTD::getFaces() {
-    return &this->faces;
-}
-
-std::vector<WTDTexCoord> * WTD::getTexCoords() {
-    return &this->texture_coords;
-}
-
-std::vector<WTDModelData> * WTD::getData() {
-    return &this->data;
-}
-
-bool WTD::getPoint(WTDPoint &point, bool parse_name) {
+std::string getHeader(std::ifstream &input, bool check_for_name, std::string anon_name) {
+    std::string output;
     std::string token;
-    bool success = true;
-    unsigned index = 0;
-    float *data = (float*)(&point.data);
 
-    if (parse_name) {
-        this->input >> token;
-
+    if (check_for_name) {
+        input >> token;
         if ("{" != token) {
-            point.name = token;
-            this->input >> token;
+            output = token;
+            input >> token;
+            return output;
         }
         else {
-            point.name = "ANON" + (unsigned)(this->points.size());
+            return anon_name;
         }
-    }
-
-    while (!this->input.eof() && 3 > index) {
-        this->input >> data[index];
-        this->input >> token;
-        ++index;
-    }
-
-    if (3 > index) {
-        success = false;
-        this->errors.push_back("File terminated early");
-    }
-
-    return success;
-}
-
-bool WTD::parsePointBlock() {
-    bool success = true;
-    WTDPoint point;
-
-    success = this->getPoint(point, true);
-
-    if (success) {
-        this->points.push_back(point);
-    }
-
-    return success;
-}
-
-bool WTD::getFace(WTDFace &face, bool parse_name) {
-    std::string token;
-    bool success = true;
-    WTDPoint *point;
-
-    if (parse_name) {
-        this->input >> token;
-
-        if ("{" != token) {
-            face.name = token;
-            this->input >> token;
-        }
-        else {
-            face.name = "ANON" + (unsigned)(this->faces.size());
-        }
-    }
-
-    this->input >> token;
-
-    while (!this->input.eof() && '}' != token[0] && success) {
-        point = nullptr;
-
-        if ('{' == token[0]) {
-            point = new WTDPoint();
-
-            point->name = "ANON" + (unsigned)(this->points.size());
-            success = this->getPoint(*point, false);
-
-            if (success) {
-                this->points.push_back(*point);
-                delete point;
-
-                this->input >> token;
-                if ('}' != token[0]) {
-                    success = false;
-                    this->errors.push_back("Expected '}' when reading ANONYMOUS point");
-                }
-            }
-            else {
-                break;
-            }
-        }
-        else if ('~' == token[0]) {
-            if (',' == token[token.size() - 1]) {
-                token = token.substr(1, token.size() - 2);
-            }
-            else {
-                token = token.erase(0, 1);
-            }
-
-            for (auto &point_p : this->points) {
-                if (point_p.name == token) {
-                    point = &point_p;
-                    break;
-                }
-            }
-
-            if (nullptr == point) {
-                success = false;
-                this->errors.push_back("Undefined reference to defined point \"" + token + "\"");
-            }
-
-            this->input >> token;
-        }
-
-        if (nullptr == point) {
-            success = false;
-        }
-        else {
-            face.data.push_back(point);
-        }
-    }
-
-    if (this->input.eof()) {
-        success = false;
-        this->errors.push_back("File terminated early");
-    }
-
-    return success;
-}
-
-bool WTD::parseFaceBlock() {
-    std::string token;
-    bool success = true;
-    WTDFace face;
-
-    success = this->getFace(face, true);
-
-    if (success) {
-        this->faces.push_back(face);
-    }
-
-    return success;
-}
-
-bool WTD::getTexCoord(WTDTexCoord &texture_coord, bool parse_name) {
-    std::string token;
-
-    if (parse_name) {
-        this->input >> token;
-
-        if ("{" != token) {
-            texture_coord.name = token;
-            this->input >> token;
-        }
-        else {
-            texture_coord.name = "ANON" + (unsigned)(this->texture_coords.size());
-        }
-    }
-
-    this->input >> texture_coord.data.x;
-    this->input >> token;
-
-    if (this->input.eof()) {
-        this->errors.push_back("File terminated early");
-        return false;
     }
     else {
-        this->input >> texture_coord.data.y;
-        this->input >> token;
+        output = anon_name;
+        input >> token;
+        return output;
     }
+}
 
-    if (this->input.eof()) {
-        this->errors.push_back("File terminated early");
+bool parsePointBlock(WTD *wtd, std::ifstream &input, bool check_for_name) {
+    std::string token;
+    WTDPoint point;
+
+    point.name = getHeader(input, check_for_name, "ANON_P_" + std::to_string(wtd->getPointLib()->size()));
+
+    input >> point.data.x;
+        input >> token;
+    input >> point.data.y;
+        input >> token;
+    input >> point.data.z;
+
+    input >> token;
+
+    if ('}' != token[0]) {
         return false;
     }
+
+    wtd->getPointLib()->push_back(point);
 
     return true;
 }
 
-bool WTD::parseTexCoordBlock() {
+bool parseTexCoordBlock(WTD *wtd, std::ifstream &input, bool check_for_name) {
     bool success = true;
-    WTDTexCoord texture_coord;
-
-    success = this->getTexCoord(texture_coord, true);
-
-    if (success) {
-        this->texture_coords.push_back(texture_coord);
-    }
-
-    return success;
-}
-
-bool WTD::parseDefineBlock() {
     std::string token;
-    bool success = true;
+    Graphics::Vertex2D texture_coord;
+    WTDTexCoord textures;
 
-    #if FILE_PARSER_WTD_DEBUG
-        std::cout << "\n===Definitions===\n\n";
-    #endif
+    textures.name = getHeader(input, check_for_name, "ANON_T_" + std::to_string(wtd->getTexCoordLib()->size()));
 
-    while (!this->input.eof() && success) {
-        this->input >> token;
-        if ("point" == token) {
-            success = this->parsePointBlock();
-        }
-        else if ("face" == token) {
-            success = this->parseFaceBlock();
-        }
-        else if ("texcoord" == token) {
-            success = this->parseTexCoordBlock();
-        }
-        else if ("};" == token) {
+    while (success) {
+        input >> token; // {
+        if ('}' == token[0]) {
             break;
         }
+
+        input >> texture_coord.x;
+            input >> token; // ,
+        input >> texture_coord.y;
+            input >> token; // },
+
+        textures.data.push_back(texture_coord);
+
+        success &= !input.eof();
     }
 
-    if (this->input.eof()) {
-        success = false;
+    if (!success) {
+        return false;
+    }
+
+    wtd->getTexCoordLib()->push_back(textures);
+
+    return true;
+}
+
+bool parseFaceBlock(WTD *wtd, std::ifstream &input, bool check_for_name) {
+    bool success = true;
+    std::string token;
+    WTDPoly face;
+    unsigned index;
+
+    face.name = getHeader(input, check_for_name, "ANON_F_" + std::to_string(wtd->getFacesLib()->size()));
+
+    while (success) {
+        input >> token;
+
+        if ("{" == token) {
+            success = parsePointBlock(wtd, input, false);
+
+            if (success) {
+                face.data.push_back(wtd->getPointLib()->size() - 1);
+            }
+        }
+        else if ('~' == token[0]) {
+            index = token.size() - 1;
+            if (',' == token[index]) {
+                token = token.substr(1, index - 1);
+            }
+            else {
+                token = token.substr(1, index);
+            }
+
+            success = false;
+            index = 0;
+            for (auto &point : *wtd->getPointLib()) {
+                if (point.name == token) {
+                    face.data.push_back(index);
+                    success = true;
+                    break;
+                }
+                ++index;
+            }
+            if (!success) {
+                wtd->errors.push_back("Failed to parse vertex statement in face data");
+            }
+        }
+        else if ('}' == token[0]) {
+            break;
+        }
+        else {
+            wtd->errors.push_back("Unknown block opening " + token);
+            success = false;
+        }
+
+        success &= !input.eof();
+    }
+
+    if (!success) {
+        return false;
+    }
+
+    wtd->getFacesLib()->push_back(face);
+
+    return true;
+}
+
+bool parseDefineBlock(WTD *wtd, std::ifstream &input) {
+    bool success = true;
+    std::string token;
+
+    input >> token;
+
+    if ('{' != token[0]) {
+        wtd->errors.push_back("Expected start of block, encountered " + token);
+        return false;
+    }
+
+    while (success) {
+        input >> token;
+
+        if ("point" == token) {
+            success = parsePointBlock(wtd, input, true);
+        }
+        else if ("texcoord" == token) {
+            success = parseTexCoordBlock(wtd, input, true);
+        }
+        else if ("face" == token) {
+            success = parseFaceBlock(wtd, input, true);
+        }
+        else if ('}' == token[0]) {
+            break;
+        }
+        else {
+            wtd->errors.push_back("Unknown definable type " + token);
+            success = false;
+        }
+
+        success &= !input.eof();
     }
 
     return success;
 }
 
-bool WTD::parseModel() {
-    std::string token;
+bool parseModelBlock(WTD *wtd, std::ifstream &input) {
     bool success = true;
-    WTDFace *face = nullptr;
-    WTDTexCoord *tex_coord = nullptr;
-    WTDModelData *model;
+    char peek;
+    std::string token;
+    unsigned index;
+    WTDFace poly;
 
-    this->input >> token;
+    input >> token;
 
-    if ("[" != token) {
-        this->errors.push_back("Expected array when parsing model");
-        success = false;
+    if ('[' != token[0]) {
+        wtd->errors.push_back("Expected start of array, encountered " + token);
+        return false;
     }
 
-    this->input >> token;
+    while (success) {
+        input >> token; // {
 
-    while (!this->input.eof() && success) {
-        this->input >> token;
+        if (']' == token[0]) {
+            break;
+        }
 
-        if ('~' == token[0]) {
-            token = token.substr(1, token.size() - 2);
+        input >> peek;
 
-            for (auto &face_p : this->faces) {
-                if (face_p.name == token) {
-                    face = &face_p;
+        if ('~' == peek) {
+            input >> token;
+            token.erase(token.size() - 1, 1);
+
+            success = false;
+            index = 0;
+            for (auto &face : *wtd->getFacesLib()) {
+                if (face.name == token) {
+                    success = true;
+                    poly.vertices = index;
                     break;
                 }
+                ++index;
             }
-
-            if (nullptr == face) {
-                success = false;
-                this->errors.push_back("Undefined reference to defined face \"" + token + "\"");
+            if (!success) {
+                wtd->errors.push_back("Undefined face " + token);
             }
         }
-        else if ("{" == token) {
-            face = new WTDFace();
-            success = this->getFace(*face, false);
+        else if ('{' == peek) {
+            input.unget();
+            success = parseFaceBlock(wtd, input, false);
 
             if (success) {
-                face->name = "ANON" + (unsigned)(this->faces.size());
-                this->faces.push_back(*face);
-                delete face;
-            }
-            else {
-                break;
+                poly.vertices = wtd->getFacesLib()->size() - 1;
             }
         }
         else {
             success = false;
+            wtd->errors.push_back("Failed to parse face statement in model data");
+        }
+
+        if (!success) {
             break;
         }
 
-        this->input >> token;
+        input >> peek;
+        if ('~' == peek) {
+            input >> token;
 
-        if ('~' == token[0]) {
-            token = token.substr(1, token.size() - 1);
-
-            for (auto &tex_p : this->texture_coords) {
-                if (tex_p.name == token) {
-                    tex_coord = &tex_p;
+            success = false;
+            index = 0;
+            for (auto &tex_coord : *wtd->getTexCoordLib()) {
+                if (tex_coord.name == token) {
+                    success = true;
+                    poly.texture_coords = index;
                     break;
                 }
+                ++index;
             }
-
-            if (nullptr == tex_coord) {
-                success = false;
-                this->errors.push_back("Undefined reference to defined texture coord \"" + token + "\"");
+            if (!success) {
+                wtd->errors.push_back("Undefined texture coordinate " + token);
             }
         }
-        else if ("{" == token) {
-            tex_coord = new WTDTexCoord();
-            success = this->getTexCoord(*tex_coord, false);
+        else if ('{' == peek) {
+            input.unget();
+            success = parseTexCoordBlock(wtd, input, false);
 
             if (success) {
-                tex_coord->name = "ANON" + (unsigned)(this->texture_coords.size());
-                this->texture_coords.push_back(*tex_coord);
-            }
-            else {
-                break;
+                poly.texture_coords = wtd->getTexCoordLib()->size() - 1;
             }
         }
-
-        if (nullptr != face && nullptr != tex_coord) {
-            model = new WTDModelData();
-            model->face = face;
-            model->texture = tex_coord;
-
-            this->data.push_back(*model);
-            delete model;
+        else {
+            success = false;
+            wtd->errors.push_back("Failed to parse texture coordinate statement in model data");
         }
 
-        this->input >> token >> token;
+        if (!success) {
+            break;
+        }
+
+        if (
+            (*wtd->getFacesLib())[poly.vertices].data.size() !=
+            (*wtd->getTexCoordLib())[poly.texture_coords].data.size()
+        ) {
+            wtd->errors.push_back("Data mismatch: face vertex and texture coordinate counts different");
+            success = false;
+            break;
+        }
+
+        wtd->getModelData()->push_back(poly);
+
+        input >> token; // },
     }
 
-    if (this->input.eof()) {
-        this->errors.push_back("File terminated early");
+    if (!success) {
         return false;
     }
+
+    input >> token; // ];
 
     return success;
 }
 
-void WTD::readFromFile(std::string path) {
-    std::string token;
+bool WTD::readFromFile(std::string path) {
+    std::ifstream input;
+    std::string token, trash;
     bool success = true;
 
-    this->input.open(path);
+    this->errors.clear();
 
-    if (!this->input) {
-        return;
+    input.open(path);
+
+    if (!input) {
+        errors.push_back("Failed to open " + path);
+        return false;
     }
 
-    while (!this->input.eof() && success) {
-        this->input >> token;
-
-        // comments
-        if ('#' == token[0]) {
-            #if FILE_PARSER_WTD_DEBUG
-                std::cout <<
-                    "Comment: " <<
-                    token <<
-                    " ";
-                std::getline(this->input, token);
-                std::cout << token << "\n";
-            #elif
-                this->input.ignore(INT_MAX, '\n');
-            #endif
-            continue;
-        }
+    while (success) {
+        input >> token;
 
         if ("define" == token) {
-            this->input >> token; // remove following brace
-            success = this->parseDefineBlock();
-            if (!success) {
-                break;
-            }
+            success = parseDefineBlock(this, input);
         }
         else if ("set" == token) {
-            this->input >> token;
-            if ("spritesheet" == token) {
-                this->input >> token >> token;
+            input >> token;
+            input >> trash;
 
-                if (';' == token[token.size() - 1]) {
-                    this->spritesheet_path = token.erase(token.size() - 1, 1);
-                }
-                std::cout << "Spritesheet: " << this->spritesheet_path << '\n';
+            if ("spritesheet" == token) {
+                input >> token;
+                token = token.erase(token.size() - 1, 1);
+
+                this->spritesheet_path = token;
             }
             else if ("spritesize" == token) {
-                this->input >> token >> this->sprite_size;
-                std::cout << "Sprite size: " << this->sprite_size << "px\n";
-                this->input >> token;
-            }
-            else if ("model" == token) {
-                this->input >> token;
-                success = this->parseModel();
+                input >> this->sprite_size;
+                input >> trash;
             }
             else if ("modelname" == token) {
-                this->input >> token >> token;
-                if (';' == token[token.size() - 1]) {
-                    this->name = token.erase(token.size() - 1, 1);
-                }
-                std::cout << "Model name: " << this->name;
+                input >> token;
+                token = token.erase(token.size() - 1, 1);
+
+                this->name = token;
+            }
+            else if ("model" == token) {
+                success = parseModelBlock(this, input);
+            }
+            else {
+                this->errors.push_back("Unknown metadata " + token);
+                success = false;
             }
         }
         else {
-            std::cout << "UNT: " << token << '\n';
+            this->errors.push_back("Unknown directive " + token);
+            success = false;
         }
-    }
 
-    if (0 == this->errors.size()) {
-        this->loaded = true;
-    }
-
-    if (!this->input.eof()) {
-        this->errors.push_back("Unexpected data at end of file ignored");
-    }
-
-    for (auto &msg : this->errors) {
-        std::cerr << msg << '\n';
+        success &= !input.eof();
     }
 
     input.close();
 
     this->print();
-}
 
-void WTD::printPoint(const WTDPoint &point) {
-    std::cout <<
-        "[ " <<
-            point.name <<
-        " ] = ( " <<
-            point.data.x << ", " <<
-            point.data.y << ", " <<
-            point.data.z <<
-        " )\n";
-}
-
-void WTD::printFace(const WTDFace &face) {
-    std::cout <<
-        "[ " <<
-            face.name <<
-        " ] = {\n";
-
-    for (const auto &point : face.data) {
-        std::cout << "\t[ ~" << point->name << " ],\n";
-    }
-
-    std::cout << "}\n";
-}
-
-void WTD::printTexCoord(const WTDTexCoord &texture_coord) {
-    std::cout <<
-        "[ " <<
-            texture_coord.name <<
-        " ] = ( " <<
-            texture_coord.data.x << ", " <<
-            texture_coord.data.y <<
-        " )\n";
+    return success;
 }
 
 void WTD::print() {
-    std::cout << "\n=== POINTS ===\n\n";
+    unsigned index;
 
-    for (auto &point : this->points) {
-        this->printPoint(point);
+    std::cout <<
+        "\n"
+        "### WTD ###\n\n"
+        "=== METADATA ===\n\n"
+        "    Name: " << this->name << "\n"
+        "    Spritesheet: " << this->spritesheet_path << "\n"
+        "    Sprite size: " << this->sprite_size << "px\n"
+        "\n"
+        "=== POINT LIBRARY ===\n\n";
+
+    index = 0;
+    for (auto &point : this->lib_points) {
+        std::cout <<
+            "    >>> POINT [" << index << "] <<<\n\n"
+            "        Name: " << point.name << "\n"
+            "        X: " << point.data.x << "\n"
+            "        Y: " << point.data.y << "\n"
+            "        Z: " << point.data.z << "\n"
+            "\n";
+        ++index;
     }
 
-    std::cout << "\n=== FACES ===\n\n";
+    std::cout << "=== FACE LIBRARY ===\n\n";
 
-    for (auto &face : this->faces) {
-        this->printFace(face);
+    index = 0;
+    for (auto &face : this->lib_faces) {
+        std::cout <<
+            "    >>> FACE [" << index << "] <<<\n\n"
+            "        Name: " << face.name << "\n"
+            "        Size: " << face.data.size() << "\n"
+            "        Points: [\n";
+
+        for (auto &point : face.data) {
+            std::cout << "            " << this->lib_points[point].name << ",\n";
+        }
+
+        std::cout << "        ]\n\n";
+        ++index;
     }
 
-    std::cout << "\n=== TEXTURE COORDS ===\n\n";
+    std::cout << "=== TEXTURE COORDINATE LIBRARY ===\n\n";
 
-    for (auto &texture_coord : this->texture_coords) {
-        this->printTexCoord(texture_coord);
+    index = 0;
+    for (auto &tex_coord : this->lib_texture_coords) {
+        std::cout <<
+            "    >>> TEXTURE [" << index << "] <<<\n\n"
+            "        Name: " << tex_coord.name << "\n"
+            "        Size: " << tex_coord.data.size() << "\n"
+            "        Points: [\n";
+
+        for (auto &point : tex_coord.data) {
+            std::cout <<
+                "            { " <<
+                    point.x << ", " <<
+                    point.y <<
+                " },\n";
+        }
+
+        std::cout << "        ]\n\n";
+        ++index;
     }
 
-    std::cout << "\n=== MODEL ===\n\n";
+    std::cout << "=== MODEL DATA ===\n\n";
 
-    for (auto &model : this->data) {
-        std::cout << "Model entry:\n\tFace:    " <<
-            model.face->name << "\n\tTexture: " <<
-            model.texture->name <<
-        "\n";
+    index = 0;
+    for (auto &poly : this->model_data) {
+        std::cout <<
+            "    >>> POLY [" << index << "] <<<\n\n"
+            "        Face:    " << this->lib_faces[poly.vertices].name << "\n"
+            "        Texture: " << this->lib_texture_coords[poly.texture_coords].name << "\n"
+            "\n";
+        ++index;
+    }
+
+    if (this->errors.size()) {
+        std::cout << "### ERRORS ###\n\n";
+        for (auto &error : this->errors) {
+            std::cout << error << '\n';
+        }
+        std::cout << '\n';
     }
 }
 

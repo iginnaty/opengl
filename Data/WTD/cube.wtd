@@ -1,5 +1,3 @@
-#A basic cube
-
 define {
     point UpFrLf {
         0, 0, 0
@@ -27,22 +25,40 @@ define {
     };
 
     face Front {
-        ~UpFrLf, ~UpFrRt, ~DnFrRt, ~DnFrLf
+        ~UpFrLf,
+        ~UpFrRt,
+        ~DnFrRt,
+        ~DnFrLf
     };
     face Back {
-        ~UpBkLf, ~UpBkRt, ~DnBkRt, ~DnBkLf
+        ~UpBkLf,
+        ~UpBkRt,
+        ~DnBkRt,
+        ~DnBkLf
     };
     face Top {
-        ~UpBkLf, ~UpBkRt, ~UpFrRt, ~UpFrLf
+        ~UpBkLf,
+        ~UpBkRt,
+        ~UpFrRt,
+        ~UpFrLf
     };
     face Bottom {
-        ~DnBkRt, ~DnBkLf, ~DnFrLf, ~DnFrRt
+        ~DnBkRt,
+        ~DnBkLf,
+        ~DnFrLf,
+        ~DnFrRt
     };
     face Left {
-        ~UpBkLf, ~UpFrLf, ~DnFrLf, ~DnBkLf
+        ~UpBkLf,
+        ~UpFrLf,
+        ~DnFrLf,
+        ~DnBkLf
     };
     face Right {
-        ~UpFrRt, ~UpBkRt, ~DnBkRt, ~DnFrRt
+        ~UpFrRt,
+        ~UpBkRt,
+        ~DnBkRt,
+        ~DnFrRt
     };
 
     texcoord TexTop {

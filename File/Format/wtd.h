@@ -5,6 +5,8 @@
 #include <fstream>
 #include "../../Graphics/vertexdata.hpp"
 
+#define DEBUG_WTD 1
+
 namespace File {
 namespace Format {
 
@@ -13,51 +15,62 @@ template<typename ValueT> struct WTDTuple {
     ValueT data;
 };
 
-typedef WTDTuple<Graphics::Vertex>        WTDPoint;
-typedef WTDTuple<std::vector<WTDPoint*> > WTDFace;
-typedef WTDTuple<Graphics::Vertex2D>      WTDTexCoord;
+typedef WTDTuple<Graphics::Vertex>       WTDPoint;
+typedef WTDTuple<std::vector<unsigned> > WTDPoly;
+typedef WTDTuple<std::vector<Graphics::Vertex2D> > WTDTexCoord;
 
-struct WTDModelData {
-    WTDFace     *face;
-    WTDTexCoord *texture;
+struct WTDFace {
+    unsigned vertices;
+    unsigned texture_coords;
 };
 
 class WhatTextData {
 private:
-    bool loaded;
     std::string name;
-    std::vector<WTDPoint>     points;
-    std::vector<WTDFace>      faces;
-    std::vector<WTDTexCoord>  texture_coords;
-    std::vector<WTDModelData> data;
     std::string spritesheet_path;
     unsigned sprite_size;
 
-    std::vector<std::string> errors;
-    std::ifstream input;
-
-    bool getPoint    (WTDPoint &point, bool parse_name);
-    bool getFace     (WTDFace &face, bool parse_name);
-    bool getTexCoord (WTDTexCoord &texture_coord, bool parse_name);
-
-    bool parsePointBlock    ();
-    bool parseFaceBlock     ();
-    bool parseTexCoordBlock ();
-    bool parseDefineBlock   ();
-    bool parseModel         ();
+    std::vector<WTDPoint>    lib_points;
+    std::vector<WTDTexCoord> lib_texture_coords;
+    std::vector<WTDPoly>     lib_faces;
+    std::vector<WTDFace>     model_data;
 public:
-    WhatTextData();
-    bool isLoaded();
-    std::vector<WTDPoint>     * getPoints();
-    std::vector<WTDFace>      * getFaces();
-    std::vector<WTDTexCoord>  * getTexCoords();
-    std::vector<WTDModelData> * getData();
+    std::vector<std::string> errors;
 
-    void readFromFile(std::string path);
+    bool readFromFile(std::string path);
+    bool writeToFile(std::string path);
+
+    std::vector<WTDPoint>* getPointLib() {
+        return &this->lib_points;
+    }
+
+    std::vector<WTDTexCoord>* getTexCoordLib() {
+        return &this->lib_texture_coords;
+    }
+
+    std::vector<WTDPoly>* getFacesLib() {
+        return &this->lib_faces;
+    }
+
+    std::vector<WTDFace>* getModelData() {
+        return &this->model_data;
+    }
+
+    void setName(std::string name) {
+        this->name = name;
+    }
+
+    void setSpritesheetPath(std::string path) {
+        this->spritesheet_path = path;
+    }
+
+    void setSpriteSize(unsigned size) {
+        this->sprite_size = size;
+    }
+
+    #if DEBUG_WTD
     void print();
-    void printPoint    (const WTDPoint &point);
-    void printFace     (const WTDFace &face);
-    void printTexCoord (const WTDTexCoord &texture_coord);
+    #endif
 };
 
 typedef WhatTextData WTD;
