@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1523554086 source:c:\users\iginnaty\documents\freeglut\main.cpp
+1523641014 source:c:\users\iginnaty\documents\freeglut\main.cpp
 	"gstart.hpp"
 	"File/Format/wtd.h"
 	"File/Format/wad.h"
@@ -170,7 +170,7 @@
 	<fstream>
 	<iostream>
 
-1523560915 source:c:\users\iginnaty\documents\freeglut\file\format\wtd.cpp
+1523640993 source:c:\users\iginnaty\documents\freeglut\file\format\wtd.cpp
 	"wtd.h"
 	<iostream>
 

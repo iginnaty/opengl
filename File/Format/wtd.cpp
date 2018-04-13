@@ -359,6 +359,119 @@ bool WTD::readFromFile(std::string path) {
     return success;
 }
 
+void linearSearchAndAdd(const unsigned ID, std::vector<unsigned> &index_list) {
+    unsigned index, length;
+
+    for (index = 0, length = index_list.size(); index < length; ++index) {
+        if (ID == index_list[index]) {
+            break;
+        }
+    }
+    if (index == length) {
+        index_list.push_back(ID);
+    }
+}
+
+bool WTD::writeToFile(std::string path) {
+    std::ofstream output;
+    std::vector<unsigned> point_indeces, face_indeces, tex_indeces;
+    unsigned index, length, subindex, sublength;
+
+    WTDPoint    *point;
+    WTDTexCoord *tex;
+    WTDPoly     *face;
+    WTDFace     *data;
+    Graphics::Vertex2D *tex_coord;
+
+    output.open(path);
+
+    if (!output) {
+        return false;
+    }
+
+    for (auto &face : this->model_data) {
+        linearSearchAndAdd(face.texture_coords, tex_indeces);
+
+        linearSearchAndAdd(face.vertices, face_indeces);
+    }
+
+    for (auto &face : face_indeces) {
+        for (auto &point : this->lib_faces[face].data) {
+            linearSearchAndAdd(point, point_indeces);
+        }
+    }
+
+    output << "define {\n";
+
+    for (index = 0, length = point_indeces.size(); index < length; ++index) {
+        point = &this->lib_points[point_indeces[index]];
+
+        output <<
+            "    point " << point->name << " {\n"
+            "        " <<
+                point->data.x << ", " <<
+                point->data.y << ", " <<
+                point->data.z << "\n"
+            "    };\n";
+    }
+
+    output << "\n";
+
+    for (index = 0, length = tex_indeces.size(); index < length; ++index) {
+        tex = &this->lib_texture_coords[tex_indeces[index]];
+
+        output <<
+            "    texcoord " << tex->name << " {\n";
+        for (subindex = 0, sublength = tex->data.size() - 1; subindex < sublength; ++subindex) {
+            tex_coord = &tex->data[subindex];
+            output <<
+                "        { " <<
+                    tex_coord->x << ", " <<
+                    tex_coord->y <<
+                " },\n";
+        }
+
+        tex_coord = &tex->data[subindex];
+        output <<
+            "        { " <<
+                tex_coord->x << ", " <<
+                tex_coord->y <<
+            " }\n"
+            "    };\n\n";
+    }
+
+    for (index = 0, length = face_indeces.size(); index < length; ++index) {
+        face = &this->lib_faces[face_indeces[index]];
+
+        output << "    face " << face->name << " {\n        ";
+
+        for (subindex = 0, sublength = face->data.size() - 1; subindex < sublength; ++subindex) {
+            output << "~" << this->lib_points[face->data[subindex]].name << ", ";
+        }
+        output << "~" << this->lib_points[face->data[subindex]].name << "\n    };\n";
+    }
+
+    output <<
+        "};\n\n"
+        "set spritesheet = " << this->spritesheet_path << ";\n"
+        "set spritesize = " << this->sprite_size << ";\n"
+        "set modelname = " << this->name << ";\n"
+        "set model = [\n";
+
+    for (index = 0, length = this->model_data.size() - 1; index < length; ++index) {
+        data = &this->model_data[index];
+
+        output << "    { ~" <<
+            this->lib_faces[data->vertices].name << ", ~" <<
+            this->lib_texture_coords[data->texture_coords].name << " },\n";
+    }
+    data = &this->model_data[index];
+
+    output << "    { ~" <<
+        this->lib_faces[data->vertices].name << ", ~" <<
+        this->lib_texture_coords[data->texture_coords].name << " }\n];\n";
+}
+
 void WTD::print() {
     unsigned index;
 

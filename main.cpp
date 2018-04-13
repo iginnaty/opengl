@@ -29,4 +29,6 @@ int main(int argc, char* argv[]) {
     File::Format::WTD wtd;
 
     wtd.readFromFile("Data/WTD/cube.wtd");
+
+    wtd.writeToFile("Data/WTD/cube.out.txt");
 }
