@@ -52,10 +52,10 @@ bool parsePointBlock(WTD *wtd, std::ifstream &input, bool check_for_name) {
 bool parseTexCoordBlock(WTD *wtd, std::ifstream &input, bool check_for_name) {
     bool success = true;
     std::string token;
-    Graphics::Vertex2D texture_coord;
-    WTDTexCoord textures;
+    Graphics::VertexI2D texture_coord;
+    WTDTexture texture;
 
-    textures.name = getHeader(input, check_for_name, "ANON_T_" + std::to_string(wtd->getTexCoordLib()->size()));
+    texture.name = getHeader(input, check_for_name, "ANON_T_" + std::to_string(wtd->getTexCoordLib()->size()));
 
     while (success) {
         input >> token; // {
@@ -68,7 +68,8 @@ bool parseTexCoordBlock(WTD *wtd, std::ifstream &input, bool check_for_name) {
         input >> texture_coord.y;
             input >> token; // },
 
-        textures.data.push_back(texture_coord);
+        wtd->getTexCoordLib()->push_back(texture_coord);
+        texture.data.push_back(wtd->getTexCoordLib()->size() - 1);
 
         success &= !input.eof();
     }
@@ -77,7 +78,7 @@ bool parseTexCoordBlock(WTD *wtd, std::ifstream &input, bool check_for_name) {
         return false;
     }
 
-    wtd->getTexCoordLib()->push_back(textures);
+    wtd->getTextureLib()->push_back(texture);
 
     return true;
 }
@@ -160,7 +161,7 @@ bool parseDefineBlock(WTD *wtd, std::ifstream &input) {
         if ("point" == token) {
             success = parsePointBlock(wtd, input, true);
         }
-        else if ("texcoord" == token) {
+        else if ("texture" == token) {
             success = parseTexCoordBlock(wtd, input, true);
         }
         else if ("face" == token) {
@@ -212,7 +213,7 @@ bool parseModelBlock(WTD *wtd, std::ifstream &input) {
             for (auto &face : *wtd->getFacesLib()) {
                 if (face.name == token) {
                     success = true;
-                    poly.vertices = index;
+                    poly.face_index = index;
                     break;
                 }
                 ++index;
@@ -226,7 +227,7 @@ bool parseModelBlock(WTD *wtd, std::ifstream &input) {
             success = parseFaceBlock(wtd, input, false);
 
             if (success) {
-                poly.vertices = wtd->getFacesLib()->size() - 1;
+                poly.face_index = wtd->getFacesLib()->size() - 1;
             }
         }
         else {
@@ -244,10 +245,10 @@ bool parseModelBlock(WTD *wtd, std::ifstream &input) {
 
             success = false;
             index = 0;
-            for (auto &tex_coord : *wtd->getTexCoordLib()) {
-                if (tex_coord.name == token) {
+            for (auto &texture : *wtd->getTextureLib()) {
+                if (texture.name == token) {
                     success = true;
-                    poly.texture_coords = index;
+                    poly.texture_index = index;
                     break;
                 }
                 ++index;
@@ -261,7 +262,7 @@ bool parseModelBlock(WTD *wtd, std::ifstream &input) {
             success = parseTexCoordBlock(wtd, input, false);
 
             if (success) {
-                poly.texture_coords = wtd->getTexCoordLib()->size() - 1;
+                poly.texture_index = wtd->getTexCoordLib()->size() - 1;
             }
         }
         else {
@@ -274,8 +275,8 @@ bool parseModelBlock(WTD *wtd, std::ifstream &input) {
         }
 
         if (
-            (*wtd->getFacesLib())[poly.vertices].data.size() !=
-            (*wtd->getTexCoordLib())[poly.texture_coords].data.size()
+            (*wtd->getFacesLib())[poly.face_index].data.size() !=
+            (*wtd->getTextureLib())[poly.texture_index].data.size()
         ) {
             wtd->errors.push_back("Data mismatch: face vertex and texture coordinate counts different");
             success = false;
@@ -377,11 +378,11 @@ bool WTD::writeToFile(std::string path) {
     std::vector<unsigned> point_indeces, face_indeces, tex_indeces;
     unsigned index, length, subindex, sublength;
 
-    WTDPoint    *point;
-    WTDTexCoord *tex;
-    WTDPoly     *face;
-    WTDFace     *data;
-    Graphics::Vertex2D *tex_coord;
+    WTDPoint   *point;
+    WTDTexture *tex;
+    WTDPoly    *face;
+    WTDFace    *data;
+    Graphics::VertexI2D *tex_coord;
 
     output.open(path);
 
@@ -390,9 +391,9 @@ bool WTD::writeToFile(std::string path) {
     }
 
     for (auto &face : this->model_data) {
-        linearSearchAndAdd(face.texture_coords, tex_indeces);
+        linearSearchAndAdd(face.texture_index, tex_indeces);
 
-        linearSearchAndAdd(face.vertices, face_indeces);
+        linearSearchAndAdd(face.face_index, face_indeces);
     }
 
     for (auto &face : face_indeces) {
@@ -418,12 +419,12 @@ bool WTD::writeToFile(std::string path) {
     output << "\n";
 
     for (index = 0, length = tex_indeces.size(); index < length; ++index) {
-        tex = &this->lib_texture_coords[tex_indeces[index]];
+        tex = &this->lib_textures[tex_indeces[index]];
 
         output <<
-            "    texcoord " << tex->name << " {\n";
+            "    texture " << tex->name << " {\n";
         for (subindex = 0, sublength = tex->data.size() - 1; subindex < sublength; ++subindex) {
-            tex_coord = &tex->data[subindex];
+            tex_coord = &this->lib_texture_coords[tex->data[subindex]];
             output <<
                 "        { " <<
                     tex_coord->x << ", " <<
@@ -431,7 +432,7 @@ bool WTD::writeToFile(std::string path) {
                 " },\n";
         }
 
-        tex_coord = &tex->data[subindex];
+        tex_coord = &this->lib_texture_coords[tex->data[subindex]];
         output <<
             "        { " <<
                 tex_coord->x << ", " <<
@@ -462,14 +463,58 @@ bool WTD::writeToFile(std::string path) {
         data = &this->model_data[index];
 
         output << "    { ~" <<
-            this->lib_faces[data->vertices].name << ", ~" <<
-            this->lib_texture_coords[data->texture_coords].name << " },\n";
+            this->lib_faces[data->face_index].name << ", ~" <<
+            this->lib_textures[data->texture_index].name << " },\n";
     }
     data = &this->model_data[index];
 
     output << "    { ~" <<
-        this->lib_faces[data->vertices].name << ", ~" <<
-        this->lib_texture_coords[data->texture_coords].name << " }\n];\n";
+        this->lib_faces[data->face_index].name << ", ~" <<
+        this->lib_textures[data->texture_index].name << " }\n];\n";
+
+    return true;
+}
+
+WAD WTD::toWAD() {
+    WAD output;
+
+    unsigned index, length;
+
+    WTDPoly    *face;
+    WTDTexture *tex;
+    std::vector<WADVertexData> wad_face;
+    WADVertexData vertex_data;
+
+    for (auto &point : this->lib_points) {
+        output.getVertices()->push_back(point.data);
+    }
+    for (auto &tex : this->lib_textures) {
+        for (auto &tex_coord : tex.data) {
+            output.getTexCoords()->push_back(this->lib_texture_coords[tex_coord]);
+        }
+    }
+    for (WTDFace &poly : this->model_data) {
+        wad_face.clear();
+
+        face = &this->lib_faces[poly.face_index];
+        for (index = 0, length = face->data.size(); index < length; ++index) {
+            vertex_data.position_index = face->data[index];
+            wad_face.push_back(vertex_data);
+        }
+
+        tex = &this->lib_textures[poly.texture_index];
+        for (index = 0, length = tex->data.size(); index < length; ++index) {
+            wad_face[index].texture_index = tex->data[index];
+        }
+
+        output.getFaces()->push_back(wad_face);
+    }
+
+    output.setName(this->name);
+    output.setSpritesheet(this->spritesheet_path);
+    output.setSpriteSize(this->sprite_size);
+
+    return output;
 }
 
 void WTD::print() {
@@ -518,18 +563,18 @@ void WTD::print() {
     std::cout << "=== TEXTURE COORDINATE LIBRARY ===\n\n";
 
     index = 0;
-    for (auto &tex_coord : this->lib_texture_coords) {
+    for (auto &tex : this->lib_textures) {
         std::cout <<
             "    >>> TEXTURE [" << index << "] <<<\n\n"
-            "        Name: " << tex_coord.name << "\n"
-            "        Size: " << tex_coord.data.size() << "\n"
+            "        Name: " << tex.name << "\n"
+            "        Size: " << tex.data.size() << "\n"
             "        Points: [\n";
 
-        for (auto &point : tex_coord.data) {
+        for (auto &tex_coord : tex.data) {
             std::cout <<
                 "            { " <<
-                    point.x << ", " <<
-                    point.y <<
+                    this->lib_texture_coords[tex_coord].x << ", " <<
+                    this->lib_texture_coords[tex_coord].y <<
                 " },\n";
         }
 
@@ -543,8 +588,8 @@ void WTD::print() {
     for (auto &poly : this->model_data) {
         std::cout <<
             "    >>> POLY [" << index << "] <<<\n\n"
-            "        Face:    " << this->lib_faces[poly.vertices].name << "\n"
-            "        Texture: " << this->lib_texture_coords[poly.texture_coords].name << "\n"
+            "        Face:    " << this->lib_faces[poly.face_index].name << "\n"
+            "        Texture: " << this->lib_textures[poly.texture_index].name << "\n"
             "\n";
         ++index;
     }

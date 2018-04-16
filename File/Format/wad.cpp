@@ -5,6 +5,12 @@
 namespace File {
 namespace Format {
 
+struct IndexPair {
+    unsigned
+        from,
+        to;
+};
+
 std::string readHeadedLengthString(std::ifstream &input) {
     size_t length;
     char *buffer;
@@ -43,10 +49,9 @@ std::vector<bintype> readHeadedLengthVector(std::ifstream &input, size_t data_le
 
 bool WAD::readFromFile(std::string path) {
     std::ifstream input;
-    size_t length, sub_length;
-    unsigned index, sub_index;
+    size_t length;
+    unsigned index;
     std::vector<WADVertexData> face;
-    WADVertexData *face_entry;
 
     input.open(path, std::ios::in | std::ios::binary);
 
@@ -63,14 +68,6 @@ bool WAD::readFromFile(std::string path) {
 
     for (index = 0; index < length; ++index) {
         face = readHeadedLengthVector<WADVertexData>(input, sizeof(WADVertexData().position_index) + sizeof(WADVertexData().texture_index));
-        sub_length = face.size();
-
-        for (sub_index = 0; sub_index < sub_length; ++sub_index) {
-            face_entry = &face[sub_index];
-
-            face_entry->position = &this->vertices[face_entry->position_index];
-            face_entry->texture = &this->texture_coords[face_entry->texture_index];
-        }
 
         this->faces.push_back(face);
     }
@@ -111,6 +108,8 @@ bool WAD::writeToFile(std::string path) {
         return false;
     }
 
+    this->compress();
+
     // name (size prepend not null terminated)
     writeHeadedLengthString(output, this->name);
 
@@ -150,6 +149,81 @@ void WAD::clear() {
     this->faces.clear();
 }
 
+int compress_searchMapAndAdd(const unsigned from, std::vector<IndexPair> &index_map) {
+    IndexPair relation;
+    unsigned index, length;
+
+    for (index = 0, length = index_map.size(); index < length; ++index) {
+        if (from == index_map[index].from) {
+            return index_map[index].to;
+        }
+    }
+
+    relation.from = from;
+    index_map.push_back(relation);
+
+    return -1;
+}
+
+template<typename VecType>
+unsigned compress_createMap(
+    VecType &new_vector, const VecType &old_vector,
+    unsigned search_index, std::vector<IndexPair> &index_map
+) {
+    unsigned index, length;
+    int existing_map;
+
+    IndexPair *relation = nullptr;
+
+    existing_map = compress_searchMapAndAdd(search_index, index_map);
+    if (-1 == existing_map) {
+        relation = &index_map.back();
+
+        for (index = 0, length = new_vector.size(); index < length; ++index) {
+            if (new_vector[index] == old_vector[search_index]) {
+                existing_map = index;
+                break;
+            }
+        }
+
+        if (-1 == existing_map) {
+            relation->to = new_vector.size();
+            new_vector.push_back(old_vector[search_index]);
+        }
+        else {
+            relation->to = existing_map;
+        }
+
+        return relation->to;
+    }
+    else {
+        return existing_map;
+    }
+
+}
+
+void WAD::compress() {
+    std::vector<Graphics::Vertex>    cmp_vertices;
+    std::vector<Graphics::VertexI2D> cmp_texture_coords;
+    std::vector<std::vector<WADVertexData> > cmp_faces;
+
+    std::vector<IndexPair>
+        vertex_map,
+        texture_map;
+
+    for (auto &face : this->faces) {
+        for (WADVertexData &indeces : face) {
+            indeces.position_index = compress_createMap(cmp_vertices, this->vertices, indeces.position_index, vertex_map);
+            indeces.texture_index  = compress_createMap(cmp_texture_coords, this->texture_coords, indeces.texture_index, texture_map);
+        }
+        cmp_faces.push_back(face);
+    }
+
+    this->vertices = cmp_vertices;
+    this->texture_coords = cmp_texture_coords;
+    this->faces = cmp_faces;
+}
+
 #if DEBUG_WAD
     void WAD::loadDebugData() {
         Graphics::Vertex    *temp_vertex;
@@ -186,20 +260,14 @@ void WAD::clear() {
         delete temp_vertex2d;
 
         temp_face = new WADVertexData{0};
-        temp_face->position = &this->vertices[0];
-        temp_face->texture  = &this->texture_coords[0];
         temp_faces.push_back(*temp_face);
 
         temp_face->position_index = 1;
         temp_face->texture_index = 1;
-        temp_face->position = &this->vertices[1];
-        temp_face->texture  = &this->texture_coords[1];
         temp_faces.push_back(*temp_face);
 
         temp_face->position_index = 2;
         temp_face->texture_index = 2;
-        temp_face->position = &this->vertices[2];
-        temp_face->texture  = &this->texture_coords[2];
         temp_faces.push_back(*temp_face);
 
         delete temp_face;

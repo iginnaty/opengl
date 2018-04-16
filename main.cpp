@@ -27,8 +27,17 @@ int main(int argc, char* argv[]) {
     */
 
     File::Format::WTD wtd;
+    File::Format::WAD wad;
 
     wtd.readFromFile("Data/WTD/cube.wtd");
 
-    wtd.writeToFile("Data/WTD/cube.out.txt");
+    wad = wtd.toWAD();
+    wad.compress();
+
+    std::cout << "\/*\n*\n*\n*\n*\n*\n*\n*\n*\n*\/";
+
+    wad.print();
+
+    wad.writeToFile("Data/WAD/cube.wad");
+
 }

@@ -21,6 +21,12 @@ namespace Graphics {
 
     struct VertexI2D {
         int x, y;
+    public:
+        bool operator == (const VertexI2D &rhs) {
+            return
+                this->x == rhs.x &&
+                this->y == rhs.y;
+        }
     };
 
     struct VertexData {

@@ -49,7 +49,7 @@
 			<Add directory="C:/Library/glew-2.1.0/lib/Release/Win32" />
 		</Linker>
 		<Unit filename="Data/WAD/test.wad" />
-		<Unit filename="Data/WAD/test.wad.old" />
+		<Unit filename="Data/WTD/cube.out.txt" />
 		<Unit filename="Data/WTD/cube.wtd" />
 		<Unit filename="File/Format/wad.cpp" />
 		<Unit filename="File/Format/wad.h" />

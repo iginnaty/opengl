@@ -24,41 +24,11 @@ define {
         0, 1, 1
     };
 
-    face Front {
-        ~UpFrLf,
-        ~UpFrRt,
-        ~DnFrRt,
-        ~DnFrLf
-    };
-    face Back {
-        ~UpBkLf,
-        ~UpBkRt,
-        ~DnBkRt,
-        ~DnBkLf
-    };
-    face Top {
-        ~UpBkLf,
-        ~UpBkRt,
-        ~UpFrRt,
-        ~UpFrLf
-    };
-    face Bottom {
-        ~DnBkRt,
-        ~DnBkLf,
-        ~DnFrLf,
-        ~DnFrRt
-    };
-    face Left {
-        ~UpBkLf,
-        ~UpFrLf,
-        ~DnFrLf,
-        ~DnBkLf
-    };
-    face Right {
-        ~UpFrRt,
-        ~UpBkRt,
-        ~DnBkRt,
-        ~DnFrRt
+    texture TexSide {
+        { 0, 1 },
+        { 1, 1 },
+        { 1, 2 },
+        { 0, 2 }
     };
 
     texture TexTop {
@@ -67,23 +37,36 @@ define {
         { 1, 1 },
         { 0, 1 }
     };
-    texture TexSide {
-        { 0, 1 },
-        { 1, 1 },
-        { 1, 2 },
-        { 0, 2 }
-    };
+
     texture TexBottom {
         { 1, 0 },
         { 2, 0 },
         { 2, 1 },
         { 1, 1 }
     };
+
+    face Front {
+        ~UpFrLf, ~UpFrRt, ~DnFrRt, ~DnFrLf
+    };
+    face Back {
+        ~UpBkLf, ~UpBkRt, ~DnBkRt, ~DnBkLf
+    };
+    face Top {
+        ~UpBkLf, ~UpBkRt, ~UpFrRt, ~UpFrLf
+    };
+    face Bottom {
+        ~DnBkRt, ~DnBkLf, ~DnFrLf, ~DnFrRt
+    };
+    face Left {
+        ~UpBkLf, ~UpFrLf, ~DnFrLf, ~DnBkLf
+    };
+    face Right {
+        ~UpFrRt, ~UpBkRt, ~DnBkRt, ~DnFrRt
+    };
 };
 
 set spritesheet = textures/cube.png;
 set spritesize = 16;
-
 set modelname = CUBE;
 set model = [
     { ~Front, ~TexSide },

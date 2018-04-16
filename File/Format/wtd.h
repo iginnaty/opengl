@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include "../../Graphics/vertexdata.hpp"
+#include "wad.h"
 
 #define DEBUG_WTD 1
 
@@ -17,12 +18,17 @@ template<typename ValueT> struct WTDTuple {
 
 typedef WTDTuple<Graphics::Vertex>       WTDPoint;
 typedef WTDTuple<std::vector<unsigned> > WTDPoly;
-typedef WTDTuple<std::vector<Graphics::Vertex2D> > WTDTexCoord;
+
+typedef Graphics::VertexI2D WTDTexCoord;
+typedef WTDTuple<std::vector<unsigned> > WTDTexture;
 
 struct WTDFace {
-    unsigned vertices;
-    unsigned texture_coords;
+    unsigned
+        face_index,
+        texture_index;
 };
+
+class WheresAlltheData;
 
 class WhatTextData {
 private:
@@ -32,6 +38,7 @@ private:
 
     std::vector<WTDPoint>    lib_points;
     std::vector<WTDTexCoord> lib_texture_coords;
+    std::vector<WTDTexture>  lib_textures;
     std::vector<WTDPoly>     lib_faces;
     std::vector<WTDFace>     model_data;
 public:
@@ -40,16 +47,22 @@ public:
     bool readFromFile(std::string path);
     bool writeToFile(std::string path);
 
+    WheresAlltheData toWAD();
+
     std::vector<WTDPoint>* getPointLib() {
         return &this->lib_points;
+    }
+
+    std::vector<WTDPoly>* getFacesLib() {
+        return &this->lib_faces;
     }
 
     std::vector<WTDTexCoord>* getTexCoordLib() {
         return &this->lib_texture_coords;
     }
 
-    std::vector<WTDPoly>* getFacesLib() {
-        return &this->lib_faces;
+    std::vector<WTDTexture>* getTextureLib() {
+        return &this->lib_textures;
     }
 
     std::vector<WTDFace>* getModelData() {
