@@ -9,8 +9,11 @@
 #include "Graphics/Shapes/cube.h"
 #include "Graphics/Texture/spritesheet.h"
 
+#include "File/Format/wad.h"
+
 Graphics::Shapes::Cube *cube;
 Graphics::Texture::SpriteSheet *checkers;
+File::Format::WAD_VAOPrecursor vao;
 
 void update() {
 }
@@ -89,12 +92,24 @@ bool initGL() {
 }
 
 bool loadMedia() {
+    File::Format::WTD wtd;
+    File::Format::WAD wad;
+
+    if (!wtd.readFromFile("Data/WTD/cube.wtd")) {
+        std::cerr << "Unable to load cube.wtd\n";
+        return false;
+    }
+
+    wad = wtd.toWAD();
+
     checkers = new Graphics::Texture::SpriteSheet();
-    if (!checkers->loadFromFile("textures/cube.png")) {
+
+    if (!checkers->loadFromFile(wad.getSpriteSheet())) {
         std::cerr << "Unable to load OpenGL textures\n";
         return false;
     }
 
+    vao = wad.getVAO(checkers->getWidth(), checkers->getHeight());
     cube = new Graphics::Shapes::Cube(64);
     cube->setTextures(checkers);
     return true;

@@ -353,9 +353,13 @@ bool WTD::readFromFile(std::string path) {
         success &= !input.eof();
     }
 
+    if (input.eof()) {
+        success = true;
+    }
+
     input.close();
 
-    this->print();
+    // this->print();
 
     return success;
 }
@@ -513,6 +517,8 @@ WAD WTD::toWAD() {
     output.setName(this->name);
     output.setSpritesheet(this->spritesheet_path);
     output.setSpriteSize(this->sprite_size);
+
+    output.compress();
 
     return output;
 }

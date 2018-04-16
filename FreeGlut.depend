@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1523903133 source:c:\users\iginnaty\documents\freeglut\main.cpp
+1523915559 source:c:\users\iginnaty\documents\freeglut\main.cpp
 	"gstart.hpp"
 	"File/Format/wtd.h"
 	"File/Format/wad.h"
@@ -165,12 +165,12 @@
 	"../Texture/spritesheet.h"
 	"../vertexdata.hpp"
 
-1523905197 source:c:\users\iginnaty\documents\freeglut\file\format\wad.cpp
+1523915527 source:c:\users\iginnaty\documents\freeglut\file\format\wad.cpp
 	"wad.h"
 	<fstream>
 	<iostream>
 
-1523899806 source:c:\users\iginnaty\documents\freeglut\file\format\wtd.cpp
+1523914112 source:c:\users\iginnaty\documents\freeglut\file\format\wtd.cpp
 	"wtd.h"
 	<iostream>
 
@@ -191,7 +191,7 @@
 	"../../Graphics/vertexdata.hpp"
 	"wad.h"
 
-1523899887 c:\users\iginnaty\documents\freeglut\file\format\wad.h
+1523915634 c:\users\iginnaty\documents\freeglut\file\format\wad.h
 	"../../Graphics/vertexdata.hpp"
 	"wtd.h"
 	<vector>
@@ -199,11 +199,12 @@
 
 1522945521 source:c:\users\iginnaty\documents\freeglut\model\model.cpp
 
-1522949341 c:\users\iginnaty\documents\freeglut\gstart.hpp
+1523915940 c:\users\iginnaty\documents\freeglut\gstart.hpp
 	<IL/il.h>
 	<IL/ilu.h>
 	"Graphics/INCLUDES.h"
 	"Graphics/WINDOW.h"
 	"Graphics/Shapes/cube.h"
 	"Graphics/Texture/spritesheet.h"
+	"File/Format/wad.h"
 

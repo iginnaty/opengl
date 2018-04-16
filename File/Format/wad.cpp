@@ -224,6 +224,40 @@ void WAD::compress() {
     this->faces = cmp_faces;
 }
 
+WAD_VAOPrecursor WAD::getVAO(float spritesheet_width, float spritesheet_height) {
+    WAD_VAOPrecursor output;
+
+    Graphics::VertexData temp_data;
+
+    Graphics::Vertex    *vertex;
+    Graphics::VertexI2D *texture;
+
+    float
+        sprite_width_mult  = (float)this->sprite_size / spritesheet_width,
+        sprite_height_mult = (float)this->sprite_size / spritesheet_height;
+
+    this->compress();
+
+    output.size = 0;
+    for (std::vector<WADVertexData> &face : this->faces) {
+        for (WADVertexData &index : face) {
+            vertex  = &this->vertices[index.position_index];
+            texture = &this->texture_coords[index.texture_index];
+
+            temp_data.position = *vertex;
+            temp_data.texture.x = (float)texture->x * sprite_width_mult;
+            temp_data.texture.y = (float)texture->y * sprite_height_mult;
+
+            output.array_object.push_back(temp_data);
+            output.index_object.push_back(output.size);
+
+            ++output.size;
+        }
+    }
+
+    return output;
+}
+
 #if DEBUG_WAD
     void WAD::loadDebugData() {
         Graphics::Vertex    *temp_vertex;

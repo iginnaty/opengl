@@ -16,9 +16,10 @@ struct WADVertexData {
         texture_index;
 };
 
-struct WAD_VAO {
-    unsigned length;
-    Graphics::VertexData vao;
+struct WAD_VAOPrecursor {
+    std::vector<Graphics::VertexData> array_object;
+    std::vector<GLuint> index_object;
+    unsigned size;
 };
 
 class WhatTextData;
@@ -39,6 +40,7 @@ public:
     bool readFromFile(std::string path);
     void clear();
     void compress();
+    WAD_VAOPrecursor getVAO(float spritesheet_width, float spritesheet_height);
 
     WhatTextData toWTD();
 
@@ -69,6 +71,10 @@ public:
 
     void setName(std::string new_name) {
         this->name = new_name;
+    }
+
+    std::string getSpriteSheet() {
+        return this->spritesheet_path;
     }
 };
 
