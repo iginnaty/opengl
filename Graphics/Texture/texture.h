@@ -19,11 +19,30 @@ namespace Texture {
         ~Basic();
         bool loadFromFile(std::string path);
         bool loadFromPixels(GLuint* pixels, GLuint image_width, GLuint image_height, GLuint width, GLuint height);
-        GLuint getHeight();
-        GLuint getWidth();
-        GLuint getID();
-        float getWidthRatio();
-        float getHeightRatio();
+
+        GLuint getWidth() {
+            return this->image_width;
+        }
+
+        GLuint getHeight() {
+            return this->image_height;
+        }
+
+        GLuint getID() {
+            return this->ID;
+        }
+
+        float getWidthRatio() {
+            return (float)this->image_width / (float)this->width;
+        }
+
+        float getHeightRatio() {
+            return (float)this->image_height / (float)this->height;
+        }
+
+        bool isLoaded() {
+            return (bool)this->ID;
+        }
     };
 
 }

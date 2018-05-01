@@ -20,6 +20,7 @@ struct WAD_VAOPrecursor {
     std::vector<Graphics::VertexData> array_object;
     std::vector<GLuint> index_object;
     unsigned size;
+    GLenum mode;
 };
 
 class WhatTextData;

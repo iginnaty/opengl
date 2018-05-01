@@ -100,25 +100,5 @@ void Basic::free() {
     this->image_height = 0;
 }
 
-GLuint Basic::getWidth() {
-    return this->image_width;
-}
-
-GLuint Basic::getHeight() {
-    return this->image_height;
-}
-
-GLuint Basic::getID() {
-    return this->ID;
-}
-
-float Basic::getWidthRatio() {
-    return (float)this->image_width / (float)this->width;
-}
-
-float Basic::getHeightRatio() {
-    return (float)this->image_height / (float)this->height;
-}
-
 }
 }

@@ -13,10 +13,6 @@ protected:
 public:
     SpriteSheet();
     SpriteSheet(GLuint sprite_width, GLuint sprite_height);
-    GLuint getHeight();
-    GLuint getWidth();
-    float getWidthRatio();
-    float getHeightRatio();
 };
 
 }

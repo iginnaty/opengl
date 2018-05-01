@@ -7,11 +7,12 @@
 #include "Graphics/WINDOW.h"
 
 #include "Graphics/Shapes/cube.h"
+#include "Model/Model.h"
 #include "Graphics/Texture/spritesheet.h"
 
 #include "File/Format/wad.h"
 
-Graphics::Shapes::Cube *cube;
+Graphics::Model *cube;
 Graphics::Texture::SpriteSheet *checkers;
 File::Format::WAD_VAOPrecursor vao;
 
@@ -109,9 +110,9 @@ bool loadMedia() {
         return false;
     }
 
-    vao = wad.getVAO(checkers->getWidth(), checkers->getHeight());
-    cube = new Graphics::Shapes::Cube(64);
-    cube->setTextures(checkers);
+    cube = new Graphics::Model(checkers, wad);
+    cube->initVBO();
+
     return true;
 }
 

@@ -3,25 +3,25 @@ define {
         0, 0, 0
     };
     point UpFrRt {
-        1, 0, 0
+        64, 0, 0
     };
     point DnFrRt {
-        1, 1, 0
+        64, 64, 0
     };
     point DnFrLf {
-        0, 1, 0
+        0, 64, 0
     };
     point UpBkLf {
-        0, 0, 1
+        0, 0, 64
     };
     point UpBkRt {
-        1, 0, 1
+        64, 0, 64
     };
     point DnBkRt {
-        1, 1, 1
+        64, 64, 64
     };
     point DnBkLf {
-        0, 1, 1
+        0, 64, 64
     };
 
     face Front {
@@ -68,20 +68,20 @@ define {
         { 0, 1 }
     };
     texture TexSide {
-        { 0, 1 },
-        { 1, 1 },
-        { 1, 2 },
-        { 0, 2 }
-    };
-    texture TexBottom {
         { 1, 0 },
         { 2, 0 },
         { 2, 1 },
         { 1, 1 }
     };
+    texture TexBottom {
+        { 0, 1 },
+        { 1, 1 },
+        { 1, 2 },
+        { 0, 2 }
+    };
 };
 
-set spritesheet = textures/cube.png;
+set spritesheet = textures/cube.new.png;
 set spritesize = 16;
 
 set modelname = CUBE;

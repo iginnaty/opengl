@@ -236,6 +236,8 @@ WAD_VAOPrecursor WAD::getVAO(float spritesheet_width, float spritesheet_height) 
         sprite_width_mult  = (float)this->sprite_size / spritesheet_width,
         sprite_height_mult = (float)this->sprite_size / spritesheet_height;
 
+    std::cout << spritesheet_width;
+
     this->compress();
 
     output.size = 0;
@@ -254,6 +256,9 @@ WAD_VAOPrecursor WAD::getVAO(float spritesheet_width, float spritesheet_height) 
             ++output.size;
         }
     }
+
+    // TODO: need to parse mode in future
+    output.mode = GL_QUADS;
 
     return output;
 }
